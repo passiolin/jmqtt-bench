@@ -137,3 +137,7 @@ mqtt-bench report -dir out/ -out report.md
 重启服务(会导致压测中途所有设备重连)。
 
 压测结果与结论见 broker 仓库 [passiolin/jmqtt-broker](https://github.com/passiolin/jmqtt-broker) 的压测章节。
+
+## 许可
+
+[Apache License 2.0](LICENSE)
