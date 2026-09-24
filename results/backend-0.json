@@ -1,0 +1,49 @@
+{
+ "ended_at": "2026-09-24T07:34:21.018181462Z",
+ "instance_index": 0,
+ "role": "backend",
+ "run_id": "conn-direct-300k",
+ "shard": [
+  0,
+  37500
+ ],
+ "steps": [
+  {
+   "index": 0,
+   "type": "connect",
+   "consumed": 2492592,
+   "echo_ok": 2492592,
+   "echo_err": 0,
+   "uplink_gap": 0,
+   "dup": 0,
+   "bad_records": 0,
+   "uplink_latency": {
+    "count": 2492592,
+    "p50_ns": 8978431,
+    "p95_ns": 3724541951,
+    "p99_ns": 9999220735,
+    "max_ns": 24561844223,
+    "mean_ns": 586331861
+   }
+  },
+  {
+   "index": 1,
+   "type": "soak",
+   "consumed": 1507142,
+   "echo_ok": 1507142,
+   "echo_err": 0,
+   "uplink_gap": 0,
+   "dup": 0,
+   "bad_records": 0,
+   "uplink_latency": {
+    "count": 1507142,
+    "p50_ns": 7471103,
+    "p95_ns": 54001663,
+    "p99_ns": 232783871,
+    "max_ns": 2936012799,
+    "mean_ns": 22270234
+   }
+  }
+ ],
+ "t0": 1790234310
+}

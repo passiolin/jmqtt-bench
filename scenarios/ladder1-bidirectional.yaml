@@ -1,0 +1,33 @@
+run_id: "ladder1-10k"
+broker: 10.10.10.104:1883
+auth: {username: jmqtt, password: jmqtt}
+kafka: {bootstrap: 10.10.10.128:9092, uplink: jmqtt-uplink, downlink: jmqtt-downlink, group: bench-backend}
+topic_prefix: bench
+payload_size: 256
+qos: 1
+keepalive: 120
+baseline_period_s: 60
+devices: {total: 10000, instance_index: 0, instance_count: 1, connect_rate: 2000}
+source_ips: []
+t0: 0
+observe_nodes:
+  - {name: jmqtt-broker, addr: 10.10.10.104}
+  - {name: bench-device, addr: 10.10.10.105}
+  - {name: bench-backend, addr: 10.10.10.130}
+  - {name: bench-kafka, addr: 10.10.10.128}
+  - {name: bench-monitor, addr: 10.10.10.129}
+  - {name: bench-redis, addr: 10.10.10.131}
+  - {name: pve, addr: 10.10.10.44}
+observe_broker: "http://10.10.10.104:8922/open/api/jmqtt/info"
+observe_interval_s: 10
+pub_ack_timeout_s: 10
+abort_inflight_global: 200000
+out_dir: /root/bench/ladder1
+steps:
+  - {type: connect, target: 10000}
+  - {type: load, rate: 1000, duration: 180}
+  - {type: load, rate: 2000, duration: 180}
+  - {type: load, rate: 4000, duration: 180}
+  - {type: load, rate: 8000, duration: 180}
+  - {type: load, rate: 16000, duration: 180}
+  - {type: load, rate: 32000, duration: 180}

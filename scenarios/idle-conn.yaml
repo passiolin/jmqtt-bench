@@ -1,0 +1,39 @@
+# 纯连接承载: 只保持在线(keepalive 心跳 60s/条), 零业务消息、零回显。
+# 持久会话, 接入仍写 Redis。探索单独维度的连接承载上限。
+run_id: "idle-conn"
+broker: 10.10.10.104:1883
+auth: {username: jmqtt, password: jmqtt}
+kafka: {bootstrap: 10.10.10.128:9092, uplink: jmqtt-uplink, downlink: jmqtt-downlink, group: bench-backend}
+topic_prefix: bench
+payload_size: 256
+qos: 1
+keepalive: 120
+baseline_period_s: 60
+baseline: false
+echo: false
+clean_session: false
+devices: {total: 420000, instance_index: 0, instance_count: 8, connect_rate: 2000}
+source_ips: [10.10.10.105, 10.10.10.106, 10.10.10.107, 10.10.10.108, 10.10.10.109, 10.10.10.110, 10.10.10.111, 10.10.10.162, 10.10.10.163, 10.10.10.164, 10.10.10.165, 10.10.10.166, 10.10.10.167, 10.10.10.168, 10.10.10.169]
+t0: 0
+observe_broker: "http://10.10.10.104:8922/open/api/jmqtt/info"
+observe_interval_s: 10
+observe_nodes:
+  - {name: jmqtt-broker, addr: 10.10.10.104}
+  - {name: bench-device, addr: 10.10.10.105}
+  - {name: bench-device-2, addr: 10.10.10.162}
+  - {name: bench-backend, addr: 10.10.10.130}
+  - {name: bench-kafka, addr: 10.10.10.128}
+  - {name: bench-redis, addr: 10.10.10.131}
+  - {name: pve, addr: 10.10.10.44}
+pub_ack_timeout_s: 10
+abort_inflight_global: 300000
+out_dir: /root/bench/idle-conn
+steps:
+  - {type: connect, target: 100000}
+  - {type: soak, duration: 120}
+  - {type: connect, target: 200000}
+  - {type: soak, duration: 120}
+  - {type: connect, target: 300000}
+  - {type: soak, duration: 120}
+  - {type: connect, target: 420000}
+  - {type: soak, duration: 300}

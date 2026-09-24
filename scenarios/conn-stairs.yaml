@@ -1,0 +1,42 @@
+# 连接数阶梯: 加压维度 = 连接数。每设备每 60s 一条 PINGREQ + 一条指令,
+# 指令 TPS = 连接数/60, backend 逐条回显(下行 TPS 同频)。
+# 每级保温 5 分钟, 末级 10 分钟。预计全程 ≈40 分钟。
+run_id: "conn-stairs"
+broker: 10.10.10.104:1883
+auth: {username: jmqtt, password: jmqtt}
+kafka: {bootstrap: 10.10.10.128:9092, uplink: jmqtt-uplink, downlink: jmqtt-downlink, group: bench-backend}
+topic_prefix: bench
+payload_size: 256
+qos: 1
+keepalive: 120
+baseline_period_s: 60
+echo: true
+clean_session: false
+devices: {total: 300000, instance_index: 0, instance_count: 4, connect_rate: 2500}
+source_ips: [10.10.10.105, 10.10.10.106, 10.10.10.107, 10.10.10.108, 10.10.10.109, 10.10.10.110, 10.10.10.111]
+t0: 0
+observe_broker: "http://10.10.10.104:8922/open/api/jmqtt/info"
+observe_interval_s: 10
+observe_nodes:
+  - {name: jmqtt-broker, addr: 10.10.10.104}
+  - {name: bench-device, addr: 10.10.10.105}
+  - {name: bench-backend, addr: 10.10.10.130}
+  - {name: bench-kafka, addr: 10.10.10.128}
+  - {name: bench-redis, addr: 10.10.10.131}
+  - {name: pve, addr: 10.10.10.44}
+pub_ack_timeout_s: 10
+abort_inflight_global: 300000
+out_dir: /root/bench/conn-stairs
+steps:
+  - {type: connect, target: 10000}
+  - {type: soak, duration: 300}
+  - {type: connect, target: 30000}
+  - {type: soak, duration: 300}
+  - {type: connect, target: 60000}
+  - {type: soak, duration: 300}
+  - {type: connect, target: 120000}
+  - {type: soak, duration: 300}
+  - {type: connect, target: 200000}
+  - {type: soak, duration: 300}
+  - {type: connect, target: 300000}
+  - {type: soak, duration: 600}

@@ -1,0 +1,27 @@
+run_id: "smoke-01"
+broker: 10.10.10.104:1883
+auth: {username: jmqtt, password: jmqtt}
+kafka: {bootstrap: 10.10.10.128:9092, uplink: jmqtt-uplink, downlink: jmqtt-downlink, group: bench-backend}
+topic_prefix: bench
+payload_size: 256
+qos: 1
+keepalive: 120
+baseline_period_s: 60
+devices: {total: 200, instance_index: 0, instance_count: 1, connect_rate: 100}
+source_ips: []
+t0: 0
+observe_nodes:
+  - {name: jmqtt-broker, addr: 10.10.10.104}
+  - {name: bench-device, addr: 10.10.10.105}
+  - {name: bench-backend, addr: 10.10.10.130}
+  - {name: bench-kafka, addr: 10.10.10.128}
+  - {name: bench-monitor, addr: 10.10.10.129}
+  - {name: bench-redis, addr: 10.10.10.131}
+  - {name: pve, addr: 10.10.10.44}
+observe_broker: "http://10.10.10.104:8922/open/api/jmqtt/info"
+observe_interval_s: 5
+pub_ack_timeout_s: 10
+out_dir: /root/bench/validate
+steps:
+  - {type: connect, target: 200}
+  - {type: load, rate: 200, duration: 120}
