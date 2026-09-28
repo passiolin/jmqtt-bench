@@ -74,7 +74,7 @@ jmqtt:
   broker:
     kafka:
       enabled: true
-      bootstrap-servers: 10.10.10.128:9092
+      bootstrap-servers: <KAFKA_HOST>:9092
       broadcast-enabled: false
       routes:
         - filters: ["bench/+/event/up"]
@@ -123,14 +123,14 @@ mqtt-bench report -dir out/ -out report.md
 | `t0` | 多实例对齐的墙钟起点; 0 = 自取 now+5s | 0 |
 | `abort_inflight_global` | 安全阀在途阈值 | 200000 |
 
-## 压测环境参考(10.10.10.44, PVE 32C/256G)
+## 压测环境参考(<PVE_HOST>, PVE 32C/256G)
 
 | VM | 名称 | 规格 | 地址 | 角色 |
 |---|---|---|---|---|
-| 105 | jmqtt-broker | 8C/16G/60G NVMe | 10.10.10.104 | 被测 broker |
-| 106 | bench-device | 8C/16G/40G NVMe, 7 个源 IP | 10.10.10.105-.111 | 模拟终端 |
-| 107 | bench-backend | 4C/8G/40G NVMe | 10.10.10.130 | 模拟后台 |
-| 108 | bench-kafka | 4C/8G/60G NVMe | 10.10.10.128 | Kafka 4.1.2 KRaft 单节点 |
+| 105 | jmqtt-broker | 8C/16G/60G NVMe | <BROKER_HOST> | 被测 broker |
+| 106 | bench-device | 8C/16G/40G NVMe, 7 个源 IP | <DEVICE_HOST_1>-.111 | 模拟终端 |
+| 107 | bench-backend | 4C/8G/40G NVMe | <BACKEND_HOST> | 模拟后台 |
+| 108 | bench-kafka | 4C/8G/60G NVMe | <KAFKA_HOST> | Kafka 4.1.2 KRaft 单节点 |
 
 模板: PVE VMID 101(Ubuntu 26.04, 已预置公钥),全量克隆到 `nvme` 存储。
 **克隆后必须禁用 `apt-daily-upgrade.timer`** —— unattended-upgrades 会在压测中途

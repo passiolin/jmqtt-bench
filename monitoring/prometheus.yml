@@ -8,25 +8,25 @@ rule_files:
 scrape_configs:
   - job_name: node-bench
     static_configs:
-      - targets: ["10.10.10.104:9100"]
+      - targets: ["<BROKER_HOST>:9100"]
         labels: {hostname: jmqtt-broker}
-      - targets: ["10.10.10.105:9100"]
+      - targets: ["<DEVICE_HOST_1>:9100"]
         labels: {hostname: bench-device}
-      - targets: ["10.10.10.106:9100"]
+      - targets: ["<DEVICE_IP_2>:9100"]
         labels: {hostname: bench-device-2}
-      - targets: ["10.10.10.128:9100"]
+      - targets: ["<KAFKA_HOST>:9100"]
         labels: {hostname: bench-kafka}
-      - targets: ["10.10.10.129:9100"]
+      - targets: ["<MONITOR_HOST>:9100"]
         labels: {hostname: bench-monitor}
-      - targets: ["10.10.10.130:9100"]
+      - targets: ["<BACKEND_HOST>:9100"]
         labels: {hostname: bench-backend}
-      - targets: ["10.10.10.131:9100"]
+      - targets: ["<REDIS_HOST>:9100"]
         labels: {hostname: bench-redis}
-      - targets: ["10.10.10.170:9100"]
+      - targets: ["<BROKER_A_HOST>:9100"]
         labels: {hostname: jmqtt-broker-a}
-      - targets: ["10.10.10.171:9100"]
+      - targets: ["<BROKER_B_HOST>:9100"]
         labels: {hostname: jmqtt-broker-b}
-      - targets: ["10.10.10.44:9100"]
+      - targets: ["<PVE_HOST>:9100"]
         labels: {hostname: pve}
     relabel_configs:
       - source_labels: [hostname]
@@ -34,11 +34,11 @@ scrape_configs:
   - job_name: jmqtt-broker
     metrics_path: /actuator/prometheus
     static_configs:
-      - targets: ["10.10.10.104:8922"]
+      - targets: ["<BROKER_HOST>:8922"]
         labels: {hostname: jmqtt-broker}
-      - targets: ["10.10.10.170:8922"]
+      - targets: ["<BROKER_A_HOST>:8922"]
         labels: {hostname: jmqtt-broker-a}
-      - targets: ["10.10.10.171:8922"]
+      - targets: ["<BROKER_B_HOST>:8922"]
         labels: {hostname: jmqtt-broker-b}
     relabel_configs:
       - source_labels: [hostname]

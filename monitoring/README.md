@@ -12,16 +12,16 @@
 
 ```bash
 # 1) Prometheus 告警规则
-scp prometheus-alert-rules.yml root@10.10.10.129:/etc/prometheus/alert_rules.yml
+scp prometheus-alert-rules.yml root@<MONITOR_HOST>:/etc/prometheus/alert_rules.yml
 
 # 2) Prometheus 主配置(如需更新)
-scp prometheus.yml root@10.10.10.129:/etc/prometheus/prometheus.yml
+scp prometheus.yml root@<MONITOR_HOST>:/etc/prometheus/prometheus.yml
 
 # 3) Grafana 面板
-scp grafana-dashboard.json root@10.10.10.129:/opt/grafana/grafana-v11/dashboards/jmqtt-bench.json
+scp grafana-dashboard.json root@<MONITOR_HOST>:/opt/grafana/grafana-v11/dashboards/jmqtt-bench.json
 
 # 4) 重启 Prometheus(Grafana 自动扫描面板目录)
-ssh root@10.10.10.129 'systemctl restart prometheus'
+ssh root@<MONITOR_HOST> 'systemctl restart prometheus'
 ```
 
 ## 告警规则说明

@@ -1,7 +1,7 @@
 run_id: "validate-steps"
-broker: 10.10.10.104:1883
+broker: 10.0.0.1:1883
 auth: {username: jmqtt, password: jmqtt}
-kafka: {bootstrap: 10.10.10.128:9092, uplink: jmqtt-uplink, downlink: jmqtt-downlink, group: bench-backend}
+kafka: {bootstrap: 10.0.0.2:9092, uplink: jmqtt-uplink, downlink: jmqtt-downlink, group: bench-backend}
 topic_prefix: bench
 payload_size: 256
 qos: 1
@@ -11,12 +11,12 @@ echo: true
 devices: {total: 1000, instance_index: 0, instance_count: 1, connect_rate: 500}
 source_ips: []
 t0: 0
-observe_broker: "http://10.10.10.104:8922/open/api/jmqtt/info"
+observe_broker: "http://10.0.0.1:8922/open/api/jmqtt/info"
 observe_interval_s: 10
 observe_nodes:
-  - {name: jmqtt-broker, addr: 10.10.10.104}
-  - {name: bench-device, addr: 10.10.10.105}
-  - {name: bench-backend, addr: 10.10.10.130}
+  - {name: jmqtt-broker, addr: 10.0.0.1}
+  - {name: bench-device, addr: 10.0.1.1}
+  - {name: bench-backend, addr: 10.0.0.3}
 out_dir: /root/bench/validate-steps
 steps:
   - {type: connect, target: 500}
