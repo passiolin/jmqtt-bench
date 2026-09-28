@@ -1,0 +1,126 @@
+groups:
+  # ================================================================
+  # jmqtt-broker 告警规则
+  # 阈值基于 30 万连接 + 5k TPS 压测基线调整, 按实际业务量修改
+  # ================================================================
+  - name: jmqtt-broker-critical
+    rules:
+      # ---- 可用性 ----
+      - alert: BrokerDown
+        expr: up{job="jmqtt-broker"} == 0
+        for: 2m
+        labels: {severity: critical}
+        annotations:
+          summary: "broker 进程不可达 ({{ $labels.instance }})"
+
+      - alert: BrokerConnectionsDropped
+        expr: rate(jmqtt_messages_dropped_total[5m]) > 0
+        for: 1m
+        labels: {severity: critical}
+        annotations:
+          summary: "broker 正在丢弃下行消息 ({{ $labels.instance }}, 5m 速率 {{ $value | humanize }})"
+
+      - alert: ClusterBusDropped
+        expr: rate(jmqtt_bus_dropped_total[5m]) > 0
+        for: 2m
+        labels: {severity: critical}
+        annotations:
+          summary: "集群总线正在丢弃消息 ({{ $labels.node }}, 5m 速率 {{ $value }})"
+
+      # ---- 连接异常 ----
+      - alert: ConnectionStormRejected
+        expr: rate(jmqtt_connections_rejected_total[5m]) > 50
+        for: 2m
+        labels: {severity: critical}
+        annotations:
+          summary: "接入风暴: 每秒拒绝 {{ $value | humanize }} 个连接 ({{ $labels.node }}, {{ $labels.reason }})"
+
+      # ---- Kafka 集群总线 ----
+      - alert: BusOutboxNearFull
+        expr: jmqtt_bus_outboxSize_total / jmqtt_bus_outboxCapacity_total > 0.8
+        for: 2m
+        labels: {severity: critical}
+        annotations:
+          summary: "集群总线出站队列 {{ $value | humanizePercentage }} 满 ({{ $labels.node }})"
+
+  # ================================================================
+  - name: jmqtt-broker-warning
+    rules:
+      # ---- JVM ----
+      - alert: BrokerHeapHigh
+        expr: jvm_memory_used_bytes{area="heap",hostname=~"jmqtt-.*"} / jvm_memory_max_bytes{area="heap",hostname=~"jmqtt-.*"} > 0.85
+        for: 5m
+        labels: {severity: warning}
+        annotations:
+          summary: "JVM 堆使用率超 85% ({{ $labels.hostname }})"
+
+      - alert: BrokerGCThrift
+        expr: rate(jvm_gc_pause_seconds_sum[5m]) > 0.5
+        for: 5m
+        labels: {severity: warning}
+        annotations:
+          summary: "GC 暂停时间异常 ({{ $labels.hostname }}, 5m 累计 {{ $value | humanize }}s)"
+
+      # ---- 连接异常 ----
+      - alert: AbnormalDisconnects
+        expr: rate(jmqtt_connections_closed_total{reason="abnormal"}[5m]) > 100
+        for: 2m
+        labels: {severity: warning}
+        annotations:
+          summary: "异常断连速率高 ({{ $labels.node }}, 5m 速率 {{ $value | humanize }})"
+
+      - alert: TakeoverStorm
+        expr: rate(jmqtt_connections_takeover_total[5m]) > 20
+        for: 2m
+        labels: {severity: warning}
+        annotations:
+          summary: "接管风暴 ({{ $labels.node }}, 5m 速率 {{ $value | humanize }})"
+
+      # ---- 下行管道 ----
+      - alert: SendQueueBackpressure
+        expr: jmqtt_send_enqueued_total > 10000
+        for: 3m
+        labels: {severity: warning}
+        annotations:
+          summary: "发送队列积压 {{ $value | humanize }} 条 ({{ $labels.node }})"
+
+      # ---- 集群总线 ----
+      - alert: BusUlinkRateDrop
+        expr: rate(jmqtt_bus_uplink_total[5m]) < 1 and jmqtt_connections_active > 10000
+        for: 5m
+        labels: {severity: warning}
+        annotations:
+          summary: "集群总线上行速率异常低 ({{ $labels.node }})"
+
+  # ================================================================
+  - name: infrastructure
+    rules:
+      # ---- 通用主机资源 ----
+      - alert: HostCPUHigh
+        expr: 100 - avg by(instance)(rate(node_cpu_seconds_total{mode="idle",hostname=~"jmqtt-.*|pve"}[5m])) * 100 > 90
+        for: 5m
+        labels: {severity: warning}
+        annotations:
+          summary: "CPU 使用率超 90% ({{ $labels.hostname }})"
+
+      - alert: HostMemoryHigh
+        expr: (1 - node_memory_MemAvailable_bytes{hostname=~"jmqtt-.*|pve"} / node_memory_MemTotal_bytes{hostname=~"jmqtt-.*"}) * 100 > 90
+        for: 5m
+        labels: {severity: warning}
+        annotations:
+          summary: "内存使用率超 90% ({{ $labels.hostname }})"
+
+      - alert: HostDiskHigh
+        expr: (1 - node_filesystem_avail_bytes{mountpoint="/",fstype!~"tmpfs|overlay",hostname=~"jmqtt-.*|pve"} / node_filesystem_size_bytes{mountpoint="/",fstype!~"tmpfs|overlay",hostname=~"jmqtt-.*|pve"}) * 100 > 90
+        for: 10m
+        labels: {severity: warning}
+        annotations:
+          summary: "根分区使用率超 90% ({{ $labels.hostname }})"
+
+      # ---- Kafka 消费组 ----
+      - alert: DownlinkConsumerLag
+        expr: kafka_consumergroup_lag{consumergroup="jmqtt-broker-1-downlink"} > 50000
+        for: 5m
+        labels: {severity: warning}
+        annotations:
+          summary: "下行消费组积压 {{ $value | humanize }} 条 (partition {{ $labels.partition }})"
