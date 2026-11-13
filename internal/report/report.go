@@ -1,8 +1,8 @@
 // Package report 聚合 device/backend JSON 产物为 Markdown 报告。
 // 核心是三集合差做丢失归因:
 //
-//	设备已发 − backend 已消费  = 上行腿丢失(含 backend gap 计数印证)
-//	backend 已回显 − 设备已收  = 下行腿丢失
+//	设备已发 − backend 已消费  = 上行丢失(含 backend gap 计数印证)
+//	backend 已回显 − 设备已收  = 下行丢失
 package report
 
 import (
@@ -134,7 +134,7 @@ func Generate(outDir string) (string, error) {
 	w("")
 	w("指令 TPS 目标 = 连接数/60(每设备每 60s 一条指令, 心跳 PING 同频, 不占消息口径)")
 	w("")
-	w("| 步 | 类型 | 目标连接 | 指令TPS目标 | 实测TPS | 发送 | 确认 | 上行丢失 | 上行重复 | 回显收到 | 回显丢失 | ACK RTT P50/P95 (ms) | 上行腿 P50/P95 (ms) | 下行腿 P50/P95 (ms) | 全环 RTT P50/P95 (ms) |")
+	w("| 步 | 类型 | 目标连接 | 指令TPS目标 | 实测TPS | 发送 | 确认 | 上行丢失 | 上行重复 | 回显收到 | 回显丢失 | ACK RTT P50/P95 (ms) | 上行时延 P50/P95 (ms) | 下行时延 P50/P95 (ms) | 端到端 RTT P50/P95 (ms) |")
 	w("|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|")
 	var gSent, gAcked, gEcho, gGap, gDup, gEchoRecv int64
 	for i := 0; i < nSteps; i++ {
@@ -210,8 +210,8 @@ func Generate(outDir string) (string, error) {
 		}
 	}
 	w("- 设备累计发送: %d, 收到 PUBACK: %d (%.4f%%)", gSent, gAcked, pct(gAcked, gSent))
-	w("- backend 累计消费: %d (上行腿 gap 计 %d, 重复 %d)", beConsumed, beGaps, beDup)
-	w("- backend 累计回显: %d, 设备收到回显: %d (下行腿丢失 %d, 设备侧重复 %d)",
+	w("- backend 累计消费: %d (上行 gap 计 %d, 重复 %d)", beConsumed, beGaps, beDup)
+	w("- backend 累计回显: %d, 设备收到回显: %d (下行丢失 %d, 设备侧重复 %d)",
 		beEcho, gEchoRecv, max64(0, beEcho-gEchoRecv), 0)
 	w("")
 

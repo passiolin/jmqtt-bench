@@ -2,7 +2,7 @@
 
 jmqtt-broker 全链路容量压测工具。模拟终端经 MQTT 收发消息、模拟后台经 Kafka 收发消息,
 把「设备 → broker → Kafka 上行 → 后台消费 → Kafka 下行 → broker → 设备」整条闭环
-跑起来并测准三件事:**吞吐上限、端到端时延、消息在哪条腿上丢**。
+跑起来并测准三件事:**吞吐上限、端到端时延、消息在上行还是下行丢失**。
 
 Go 实现,单个二进制 `mqtt-bench`,三个子命令对应三个角色:
 
@@ -30,12 +30,12 @@ device ──PUBLISH(event/up, QoS1)──> broker ──Kafka uplink──> bac
 
 | 差值 | 含义 |
 |---|---|
-| 已发送 − backend 已消费 | 上行腿丢失(broker → Kafka) |
-| backend 已回显 − 设备已收到 | 下行腿丢失(Kafka → broker → 设备) |
+| 已发送 − backend 已消费 | 上行丢失(broker → Kafka) |
+| backend 已回显 − 设备已收到 | 下行丢失(Kafka → broker → 设备) |
 | seq 回退/重复 | QoS1 重发产生的端到端重复 |
 
-三种延迟分开记:**ACK RTT**(设备→broker 的 PUBACK,即投递腿)、
-**上行腿时延**(t0→backend 消费)、**全环 RTT**(t0→回显收回)。
+三种延迟分开记:**ACK RTT**(设备→broker 的 PUBACK 确认)、
+**上行时延**(设备发送→backend 消费)、**端到端时延**(设备发送→收到回显)。
 
 ## 关键设计约束
 
