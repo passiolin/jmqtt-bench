@@ -59,13 +59,12 @@ device ──PUBLISH(event/up, QoS1)──> broker ──Kafka uplink──> bac
 
 见 broker `cluster/kafka/ClusterRecords.java`:
 
-- **上行**(broker → Kafka): value 为 JSON 信封
+- **上行**(broker → Kafka, JSON 契约, 零 header): value =
   `{"username","topic","timestamp","qos","payload","node","clientid"}`,
-  payload 是字符串化的原始消息体; header `jmqtt-kind=routed-publish`;
-  key 按路由 `key: device`(=clientId)分区,同设备分区内严格有序。
-- **下行**(后台 → Kafka): value 为 JSON `{"topic","qos","payload"}`,
-  qos 缺省 1; record 的 key 仅用于分区(取 deviceId);broker 每节点独立 group
-  消费、只做本地投递、绝不回写。
+  payload 为 byte[](JSON 中 base64, 二进制无损); record key 仅用于分区
+  (`key: device` 即 clientId, 同 key 分区内严格有序)。
+- **下行**(后台 → Kafka, JSON 契约, 零 header): value = `{"topic","qos","payload"}`;
+  record key 仅用于分区(取 deviceId); broker 每节点独立 group 消费、只做本地投递、绝不回写。
 
 broker 侧参考配置(压测用,`application-local.yml`):
 

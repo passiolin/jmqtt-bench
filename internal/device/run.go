@@ -261,12 +261,13 @@ func (r *Runner) onEcho(d *dev, m *mqttc.Message) {
 		return
 	}
 	seq := uint32(seqV)
-	last := d.echoLast.Load()
-	if seq <= last {
+	// 下行不再保证设备内有序(broker 消费并行化): 每条回显都计收到;
+	// seq 回退只记乱序(EchoDup), 不作为丢失。
+	if last := d.echoLast.Load(); seq <= last {
 		s.EchoDup.Add(1)
-		return
+	} else {
+		d.echoLast.Store(seq)
 	}
-	d.echoLast.Store(seq)
 	s.EchoRecv.Add(1)
 	if t0v, ok := scanUintAfter(m.Payload, `"t0":`); ok && t0v > 0 {
 		s.RTT.Record(time.Now().UnixNano() - int64(t0v))

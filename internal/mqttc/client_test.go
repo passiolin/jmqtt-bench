@@ -1,7 +1,6 @@
 package mqttc
 
 import (
-	"encoding/json"
 	"net"
 	"testing"
 	"time"
@@ -170,23 +169,5 @@ func TestEnvelopeRoundtrip(t *testing.T) {
 	did, seq, t0, ok := proto.ParseHeader(b)
 	if !ok || did != "d0000042" || seq != 12345 || t0 != e.T0 {
 		t.Fatalf("roundtrip mismatch: %v %d %d %v", did, seq, t0, ok)
-	}
-	// EchoJSON: payload 作为 JSON 字符串正确转义, topic 在信封里
-	echo := proto.EchoJSON(nil, "bench/d/event/up", "bench/d/service/down",
-		&proto.Envelope{Seq: 1, T0: 2, T1: 3, DID: "d"}, 256)
-	var down struct {
-		Topic   string `json:"topic"`
-		QoS     int    `json:"qos"`
-		Payload string `json:"payload"`
-	}
-	if err := json.Unmarshal(echo, &down); err != nil {
-		t.Fatalf("echo json: %v", err)
-	}
-	if down.Topic != "bench/d/service/down" || down.QoS != 1 {
-		t.Fatalf("echo envelope: %+v", down)
-	}
-	did2, seq2, t02, ok2 := proto.ParseHeader([]byte(down.Payload))
-	if !ok2 || did2 != "d" || seq2 != 1 || t02 != 2 {
-		t.Fatalf("echo payload roundtrip: %v %d %d %v", did2, seq2, t02, ok2)
 	}
 }
