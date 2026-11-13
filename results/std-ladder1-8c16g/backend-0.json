@@ -1,0 +1,139 @@
+{
+ "ended_at": "2026-11-12T14:58:45.024860234Z",
+ "instance_index": 0,
+ "role": "backend",
+ "run_id": "std-ladder1",
+ "shard": [
+  0,
+  5000
+ ],
+ "steps": [
+  {
+   "index": 0,
+   "type": "connect",
+   "consumed": 191,
+   "echo_ok": 191,
+   "echo_err": 0,
+   "uplink_gap": 0,
+   "dup": 0,
+   "bad_records": 0,
+   "uplink_latency": {
+    "count": 191,
+    "p50_ns": 33161215,
+    "p95_ns": 55312383,
+    "p99_ns": 56360959,
+    "max_ns": 92274687,
+    "mean_ns": 31938420
+   }
+  },
+  {
+   "index": 1,
+   "type": "load",
+   "consumed": 367700,
+   "echo_ok": 367698,
+   "echo_err": 0,
+   "uplink_gap": 1,
+   "dup": 2,
+   "bad_records": 0,
+   "uplink_latency": {
+    "count": 367700,
+    "p50_ns": 33816575,
+    "p95_ns": 81264639,
+    "p99_ns": 245366783,
+    "max_ns": 826277887,
+    "mean_ns": 39281968
+   }
+  },
+  {
+   "index": 2,
+   "type": "load",
+   "consumed": 746518,
+   "echo_ok": 746517,
+   "echo_err": 0,
+   "uplink_gap": 1,
+   "dup": 1,
+   "bad_records": 0,
+   "uplink_latency": {
+    "count": 746518,
+    "p50_ns": 49545215,
+    "p95_ns": 144703487,
+    "p99_ns": 223346687,
+    "max_ns": 2030043135,
+    "mean_ns": 62150833
+   }
+  },
+  {
+   "index": 3,
+   "type": "load",
+   "consumed": 1470045,
+   "echo_ok": 1470044,
+   "echo_err": 0,
+   "uplink_gap": 1,
+   "dup": 1,
+   "bad_records": 0,
+   "uplink_latency": {
+    "count": 1470045,
+    "p50_ns": 30408703,
+    "p95_ns": 54001663,
+    "p99_ns": 55574527,
+    "max_ns": 117440511,
+    "mean_ns": 30451213
+   }
+  },
+  {
+   "index": 4,
+   "type": "load",
+   "consumed": 2331537,
+   "echo_ok": 2330954,
+   "echo_err": 0,
+   "uplink_gap": 583,
+   "dup": 583,
+   "bad_records": 0,
+   "uplink_latency": {
+    "count": 2331537,
+    "p50_ns": 541065215,
+    "p95_ns": 35433480191,
+    "p99_ns": 71940702207,
+    "max_ns": 136902082559,
+    "mean_ns": 6932787876
+   }
+  },
+  {
+   "index": 5,
+   "type": "load",
+   "consumed": 1336924,
+   "echo_ok": 1336922,
+   "echo_err": 0,
+   "uplink_gap": 42052,
+   "dup": 2,
+   "bad_records": 0,
+   "uplink_latency": {
+    "count": 1266903,
+    "p50_ns": 2550136831,
+    "p95_ns": 108984795135,
+    "p99_ns": 130459631615,
+    "max_ns": 137438953471,
+    "mean_ns": 29696639978
+   }
+  },
+  {
+   "index": 6,
+   "type": "load",
+   "consumed": 2561337,
+   "echo_ok": 2561332,
+   "echo_err": 0,
+   "uplink_gap": 5749,
+   "dup": 5,
+   "bad_records": 0,
+   "uplink_latency": {
+    "count": 2560568,
+    "p50_ns": 5570035711,
+    "p95_ns": 55029268479,
+    "p99_ns": 86436216831,
+    "max_ns": 137438953471,
+    "mean_ns": 15124635247
+   }
+  }
+ ],
+ "t0": 1794494410
+}

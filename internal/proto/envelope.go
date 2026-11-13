@@ -94,32 +94,5 @@ func scanNumAfter(b []byte, key string) (int64, bool) {
 	return v, err == nil
 }
 
-// EchoJSON 构造 backend 的下行回显 record value:
-// {"topic":"...","qos":1,"payload":"<envelope json>"}
-// 契约见 broker ClusterRecords.DownlinkEnvelope —— value 是 JSON 信封,
-// topic 在信封里, record key 仅用于分区(取 deviceId)。
-func EchoJSON(buf []byte, upTopic, downTopic string, e *Envelope, size int) []byte {
-	inner := AppendMarshal(nil, e, size)
-	buf = append(buf, `{"topic":"`...)
-	buf = append(buf, downTopic...)
-	buf = append(buf, `","qos":1,"payload":"`...)
-	buf = appendJSONString(buf, inner)
-	buf = append(buf, '"', '}')
-	return buf
-}
-
-// appendJSONString 把 b 作为 JSON 字符串值写入(处理转义)。信封内容
-// 全部是受控字符(字母数字冒号点斜杠引号), 这里只需处理 " 和 \。
-func appendJSONString(dst, b []byte) []byte {
-	for _, c := range b {
-		switch c {
-		case '"':
-			dst = append(dst, '\\', '"')
-		case '\\':
-			dst = append(dst, '\\', '\\')
-		default:
-			dst = append(dst, c)
-		}
-	}
-	return dst
-}
+// 下行回显的 JSON 记录构造见 internal/backend 的 downlinkRecord:
+// value = {"topic","qos","payload"(base64)}, 零 header。

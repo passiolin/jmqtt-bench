@@ -1,0 +1,49 @@
+{
+ "ended_at": "2026-11-12T09:41:39.012778901Z",
+ "instance_index": 0,
+ "role": "backend",
+ "run_id": "std-idle-420k",
+ "shard": [
+  0,
+  210000
+ ],
+ "steps": [
+  {
+   "index": 0,
+   "type": "connect",
+   "consumed": 0,
+   "echo_ok": 0,
+   "echo_err": 0,
+   "uplink_gap": 0,
+   "dup": 0,
+   "bad_records": 0,
+   "uplink_latency": {
+    "count": 0,
+    "p50_ns": 0,
+    "p95_ns": 0,
+    "p99_ns": 0,
+    "max_ns": 0,
+    "mean_ns": 0
+   }
+  },
+  {
+   "index": 1,
+   "type": "soak",
+   "consumed": 0,
+   "echo_ok": 0,
+   "echo_err": 0,
+   "uplink_gap": 0,
+   "dup": 0,
+   "bad_records": 0,
+   "uplink_latency": {
+    "count": 0,
+    "p50_ns": 0,
+    "p95_ns": 0,
+    "p99_ns": 0,
+    "max_ns": 0,
+    "mean_ns": 0
+   }
+  }
+ ],
+ "t0": 1794476242
+}

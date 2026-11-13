@@ -1,8 +1,9 @@
 // Package backend 模拟后台: 消费 Kafka 上行 → 记录时延/丢失/重复 → 逐条回显到 downlink。
 // 与 broker 的契约(见 broker ClusterRecords):
-//   - 上行 value = JSON 信封 {username,topic,timestamp,qos,payload,node,clientid},
-//     key = clientId(routes key: device), header jmqtt-kind=routed-publish
-//   - 下行 value = JSON {"topic","qos","payload"}, key 仅用于分区(取 deviceId)
+//   - 上行 value = JSON {username,topic,timestamp,qos,payload(base64),node,clientid},
+//     零 header; 设备信封在 payload 里(ParseHeader), 时间戳读 record.Timestamp
+//   - 下行 value = JSON {topic,qos,payload(base64)}, 零 header;
+//     key 仅用于分区(取 deviceId)
 package backend
 
 import (
@@ -201,16 +202,13 @@ func (r *Runner) process(lastSeq map[string]uint32, buf *[]byte, producer *kgo.C
 	if rec.Timestamp.Before(r.plans[0].StartAt.Add(-2 * time.Second)) {
 		return
 	}
-	var env struct {
-		Topic    string `json:"topic"`
-		Payload  string `json:"payload"`
-		ClientID string `json:"clientid"`
-	}
-	if err := json.Unmarshal(rec.Value, &env); err != nil || env.Payload == "" {
+	// 上行 JSON 契约: {"topic","qos","payload"(base64),...}, payload 内是设备信封
+	up, ok := decodeUplink(rec)
+	if !ok {
 		r.curPtr.Load().Bad.Add(1)
 		return
 	}
-	did, seq, t0, ok := proto.ParseHeader([]byte(env.Payload))
+	did, seq, t0, ok := proto.ParseHeader(up.Payload)
 	if !ok {
 		r.curPtr.Load().Bad.Add(1)
 		return
@@ -240,20 +238,18 @@ func (r *Runner) process(lastSeq map[string]uint32, buf *[]byte, producer *kgo.C
 	}
 	downTopic := fmt.Sprintf("%s/%s/service/down", r.cfg.TopicPrefix, did)
 	e := proto.Envelope{Seq: seq, T0: t0, T1: now, DID: did}
-	*buf = proto.EchoJSON((*buf)[:0], env.Topic, downTopic, &e, r.cfg.PayloadSize)
+	*buf = proto.AppendMarshal((*buf)[:0], &e, r.cfg.PayloadSize)
 	val := make([]byte, len(*buf))
 	copy(val, *buf)
-	producer.Produce(context.Background(), &kgo.Record{
-		Topic: r.cfg.Kafka.Downlink,
-		Key:   []byte(did),
-		Value: val,
-	}, func(_ *kgo.Record, err error) {
-		if err != nil {
-			s.EchoErr.Add(1)
-			return
-		}
-		s.EchoOK.Add(1)
-	})
+	producer.Produce(context.Background(),
+		downlinkRecord(r.cfg.Kafka.Downlink, downTopic, did, val),
+		func(_ *kgo.Record, err error) {
+			if err != nil {
+				s.EchoErr.Add(1)
+				return
+			}
+			s.EchoOK.Add(1)
+		})
 }
 
 func (r *Runner) dump() {

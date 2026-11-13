@@ -1,0 +1,85 @@
+{
+ "ended_at": "2026-11-12T09:51:28.020140397Z",
+ "instance_index": 0,
+ "role": "backend",
+ "run_id": "std-ladder2",
+ "shard": [
+  0,
+  5000
+ ],
+ "steps": [
+  {
+   "index": 0,
+   "type": "connect",
+   "consumed": 383,
+   "echo_ok": 0,
+   "echo_err": 0,
+   "uplink_gap": 0,
+   "dup": 0,
+   "bad_records": 0,
+   "uplink_latency": {
+    "count": 383,
+    "p50_ns": 33554431,
+    "p95_ns": 54788095,
+    "p99_ns": 56885247,
+    "max_ns": 59768831,
+    "mean_ns": 31370504
+   }
+  },
+  {
+   "index": 1,
+   "type": "load",
+   "consumed": 1939410,
+   "echo_ok": 0,
+   "echo_err": 0,
+   "uplink_gap": 0,
+   "dup": 0,
+   "bad_records": 0,
+   "uplink_latency": {
+    "count": 1939410,
+    "p50_ns": 34078719,
+    "p95_ns": 56885247,
+    "p99_ns": 68157439,
+    "max_ns": 350224383,
+    "mean_ns": 33428933
+   }
+  },
+  {
+   "index": 2,
+   "type": "load",
+   "consumed": 2899282,
+   "echo_ok": 0,
+   "echo_err": 0,
+   "uplink_gap": 0,
+   "dup": 0,
+   "bad_records": 0,
+   "uplink_latency": {
+    "count": 2899282,
+    "p50_ns": 37224447,
+    "p95_ns": 717225983,
+    "p99_ns": 4865392639,
+    "max_ns": 7918845951,
+    "mean_ns": 200220073
+   }
+  },
+  {
+   "index": 3,
+   "type": "load",
+   "consumed": 3861130,
+   "echo_ok": 0,
+   "echo_err": 0,
+   "uplink_gap": 1,
+   "dup": 1,
+   "bad_records": 0,
+   "uplink_latency": {
+    "count": 3861130,
+    "p50_ns": 38273023,
+    "p95_ns": 63963135,
+    "p99_ns": 108003327,
+    "max_ns": 356515839,
+    "mean_ns": 39143058
+   }
+  }
+ ],
+ "t0": 1794476693
+}
