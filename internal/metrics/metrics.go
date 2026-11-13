@@ -82,13 +82,15 @@ type StepStats struct {
 	EchoRecv   atomic.Int64 // 收到回显
 	EchoDup    atomic.Int64 // 乱序/重复回显
 
-	AckRTT *Hist // publish → PUBACK
-	RTT    *Hist // publish → 回显收到(全环)
+	AckRTT  *Hist // publish → PUBACK
+	UpRTT   *Hist // publish → backend 消费(t0→t1, 上行腿)
+	DownRTT *Hist // backend 消费 → 回显收到(t1→t2, 下行腿)
+	RTT     *Hist // publish → 回显收到(全环)
 }
 
 func NewStep(index int, typ string, rate, durS, conns int64) *StepStats {
 	return &StepStats{Index: index, Type: typ, RateTarget: rate, DurationS: durS, ConnsTarget: conns,
-		AckRTT: NewHist(), RTT: NewHist()}
+		AckRTT: NewHist(), UpRTT: NewHist(), DownRTT: NewHist(), RTT: NewHist()}
 }
 
 // StepSnapshot JSON 序列化形态
@@ -106,8 +108,10 @@ type StepSnapshot struct {
 	EchoRecv   int64 `json:"echo_recv"`
 	EchoDup    int64 `json:"echo_dup"`
 
-	AckRTT HistSnapshot `json:"ack_rtt"`
-	RTT    HistSnapshot `json:"rtt"`
+	AckRTT  HistSnapshot `json:"ack_rtt"`
+	UpRTT   HistSnapshot `json:"up_rtt"`
+	DownRTT HistSnapshot `json:"down_rtt"`
+	RTT     HistSnapshot `json:"rtt"`
 }
 
 // Snapshot 输出可序列化形态
@@ -117,6 +121,7 @@ func (s *StepStats) Snapshot() StepSnapshot {
 		DurationS: s.DurationS,
 		Sent:      s.Sent.Load(), Baseline: s.Baseline.Load(), Acked: s.Acked.Load(),
 		PubTimeout: s.PubTimeout.Load(), EchoRecv: s.EchoRecv.Load(), EchoDup: s.EchoDup.Load(),
-		AckRTT: s.AckRTT.Snapshot(), RTT: s.RTT.Snapshot(),
+		AckRTT: s.AckRTT.Snapshot(), UpRTT: s.UpRTT.Snapshot(), DownRTT: s.DownRTT.Snapshot(),
+		RTT: s.RTT.Snapshot(),
 	}
 }

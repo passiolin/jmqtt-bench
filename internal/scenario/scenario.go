@@ -79,6 +79,13 @@ type Config struct {
 	PubAckTimeoutS int `yaml:"pub_ack_timeout_s" json:"pub_ack_timeout_s"`
 	// AbortInflightGlobal 全局在途(PUBACK 未归)超过该值并持续 60s → 本实例中止
 	AbortInflightGlobal int64 `yaml:"abort_inflight_global" json:"abort_inflight_global"`
+	// TailQuietS 时间线结束前 N 秒停止发送: 让最后一批消息在统计窗口内走完,
+	// 收尾阶段的回显不纳入统计。最后一步的 TPS 分母会相应扣除这 N 秒。
+	TailQuietS int `yaml:"tail_quiet_s" json:"tail_quiet_s"`
+	// ShutdownGraceS 时间线结束后保持连接、只收不发的秒数。
+	// backend 的收尾窗口是「时间线终点 + 30s」; 设备必须先于 backend 退出,
+	// 否则最后一批回显没有接收方, 会被统计成假性下行丢失。默认 0(立即退出)。
+	ShutdownGraceS int `yaml:"shutdown_grace_s" json:"shutdown_grace_s"`
 
 	OutDir string `yaml:"out_dir" json:"out_dir"`
 }

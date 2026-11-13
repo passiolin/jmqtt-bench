@@ -31,6 +31,8 @@ type StepSnapshot struct {
 	EchoRecv    int64  `json:"echo_recv"`
 	EchoDup     int64  `json:"echo_dup"`
 	AckRTT      Hist   `json:"ack_rtt"`
+	UpRTT       Hist   `json:"up_rtt"`
+	DownRTT     Hist   `json:"down_rtt"`
 	RTT         Hist   `json:"rtt"`
 }
 
@@ -132,8 +134,8 @@ func Generate(outDir string) (string, error) {
 	w("")
 	w("指令 TPS 目标 = 连接数/60(每设备每 60s 一条指令, 心跳 PING 同频, 不占消息口径)")
 	w("")
-	w("| 步 | 类型 | 目标连接 | 指令TPS目标 | 实测TPS | 发送 | 确认 | 上行丢失 | 上行重复 | 回显收到 | 回显丢失 | ACK RTT P50/P95/P99 (ms) | 全环 RTT P50/P95/P99 (ms) |")
-	w("|---|---|---|---|---|---|---|---|---|---|---|---|---|")
+	w("| 步 | 类型 | 目标连接 | 指令TPS目标 | 实测TPS | 发送 | 确认 | 上行丢失 | 上行重复 | 回显收到 | 回显丢失 | ACK RTT P50/P95 (ms) | 上行腿 P50/P95 (ms) | 下行腿 P50/P95 (ms) | 全环 RTT P50/P95 (ms) |")
+	w("|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|")
 	var gSent, gAcked, gEcho, gGap, gDup, gEchoRecv int64
 	for i := 0; i < nSteps; i++ {
 		st := devs[0].Steps[i]
@@ -190,9 +192,9 @@ func Generate(outDir string) (string, error) {
 		} else if st.RateTarget > 0 {
 			tpsTarget = rateStr(st.RateTarget)
 		}
-		w("| %d | %s | %s | %s | %.0f | %d | %d | %d | %d | %d | %d | %s | %s |",
+		w("| %d | %s | %s | %s | %.0f | %d | %d | %d | %d | %d | %d | %s | %s | %s | %s |",
 			i, st.Type, connsCol, tpsTarget, actual, sent, acked, gaps, dup, echoRecv, echoLost,
-			msTriple(artt), msTriple(rtt))
+			msPair(artt), msPair(st.UpRTT), msPair(st.DownRTT), msPair(rtt))
 	}
 	w("")
 
@@ -256,6 +258,13 @@ func msTriple(h Hist) string {
 		return "-"
 	}
 	return fmt.Sprintf("%.1f/%.1f/%.1f", float64(h.P50)/1e6, float64(h.P95)/1e6, float64(h.P99)/1e6)
+}
+
+func msPair(h Hist) string {
+	if h.Count == 0 {
+		return "-"
+	}
+	return fmt.Sprintf("%.1f/%.1f", float64(h.P50)/1e6, float64(h.P95)/1e6)
 }
 
 func pct(a, b int64) float64 {

@@ -69,7 +69,9 @@ type Runner struct {
 	brokerObs *observe.Poller
 	nodeObs   *observe.NodePoller
 	outPath   string
-	abortFlag atomic.Bool
+	abortFlag    atomic.Bool
+	sendStopped  atomic.Bool // 时间线结束: 停止发送(含基线), 只收不回
+	statsFrozen  atomic.Bool // 收尾接收窗口结束: 之后的回显/确认不再计入统计
 }
 
 func Run(cfg *scenario.Config) error {
@@ -242,6 +244,9 @@ func (r *Runner) onDown(d *dev, err error) {
 }
 
 func (r *Runner) onPuback(d *dev, el time.Duration) {
+	if r.statsFrozen.Load() {
+		return
+	}
 	if s := r.curPtr.Load(); s != nil {
 		s.Acked.Add(1)
 		s.AckRTT.Record(int64(el))
@@ -252,6 +257,9 @@ func (r *Runner) onPuback(d *dev, el time.Duration) {
 // 同设备的下行经「按设备分区 → broker 按分区 worker 消费」全程 FIFO,
 // 单调性成立: seq <= last 视为重复, 跳号即下行腿丢失。
 func (r *Runner) onEcho(d *dev, m *mqttc.Message) {
+	if r.statsFrozen.Load() {
+		return
+	}
 	s := r.curPtr.Load()
 	if s == nil {
 		return
@@ -269,8 +277,22 @@ func (r *Runner) onEcho(d *dev, m *mqttc.Message) {
 		d.echoLast.Store(seq)
 	}
 	s.EchoRecv.Add(1)
-	if t0v, ok := scanUintAfter(m.Payload, `"t0":`); ok && t0v > 0 {
-		s.RTT.Record(time.Now().UnixNano() - int64(t0v))
+	t0v, ok := scanUintAfter(m.Payload, `"t0":`)
+	if !ok || t0v == 0 {
+		return
+	}
+	now := time.Now().UnixNano()
+	s.RTT.Record(now - int64(t0v))
+	// 分段: t1 是 backend 消费并回显的时刻。上行腿 = t1-t0,
+	// 下行腿 = 收到回显 - t1(含 backend 处理与 Kafka 下行)。
+	// 两段相加近似全环, 用来判定积压出在进 broker 之前还是之后。
+	if t1v, ok := scanUintAfter(m.Payload, `"t1":`); ok && t1v > 0 {
+		if up := int64(t1v) - int64(t0v); up > 0 {
+			s.UpRTT.Record(up)
+		}
+		if down := now - int64(t1v); down > 0 {
+			s.DownRTT.Record(down)
+		}
 	}
 }
 
@@ -573,11 +595,30 @@ func (r *Runner) runPhase() {
 
 	// 等时间线走完
 	last := r.plans[len(r.plans)-1]
+	if q := r.cfg.TailQuietS; q > 0 {
+		at := last.EndAt.Add(-time.Duration(q) * time.Second)
+		go func() {
+			if d := time.Until(at); d > 0 {
+				time.Sleep(d)
+			}
+			r.sendStopped.Store(true)
+			log.Printf("[device] 时间线结束前 %ds 停止发送, 只收不回", q)
+		}()
+	}
 	if d := time.Until(last.EndAt); d > 0 {
 		time.Sleep(d)
 	}
-	time.Sleep(2 * time.Second) // 尾部在途回包
-	r.abortFlag.Store(true)     // worker 与重连协程退出
+	// 发送阶段结束: 停止所有业务消息(含 60s 基线), 保持连接只收回显。
+	// 收尾回显属于最后一步发送的消息, 继续计入最后一步统计 —— 统计窗口里
+	// 不会出现「发了但没收到」的边界差。等接收窗口结束才冻结统计。
+	r.sendStopped.Store(true)
+	if grace := r.cfg.ShutdownGraceS; grace > 0 {
+		log.Printf("[device] 发送阶段结束, 保持连接接收收尾回显 %ds(计入最后一步)", grace)
+		time.Sleep(time.Duration(grace) * time.Second)
+	}
+	r.statsFrozen.Store(true)
+	time.Sleep(time.Second)
+	r.abortFlag.Store(true)
 	close(stop)
 	wg.Wait()
 	<-done
@@ -587,7 +628,7 @@ func (r *Runner) runPhase() {
 // 只有已连接且到期的设备才发(未接入的设备 nextBase=0)。
 // baseline=false 的纯连接场景直接跳过(keepalive PING 由 mqttc 心跳协程自理)。
 func (r *Runner) drainBaseline(s *metrics.StepStats) {
-	if !r.baselineEnabled() {
+	if !r.baselineEnabled() || r.sendStopped.Load() {
 		return
 	}
 	n := uint64(len(r.devs))
@@ -612,6 +653,9 @@ func (r *Runner) drainBaseline(s *metrics.StepStats) {
 var baseCursor atomic.Uint64
 
 func (r *Runner) publish(d *dev, s *metrics.StepStats, baseline bool) {
+	if r.sendStopped.Load() {
+		return
+	}
 	if !d.connected.Load() {
 		r.totals.skipDisc.Add(1)
 		return
